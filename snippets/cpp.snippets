@@ -68,14 +68,23 @@ snippet mu
 ## Class
 # class
 snippet cl
-	class ${1:`vim_snippets#Filename('$1', 'name')`}
-	{
+	class ${1:`vim_snippets#Filename('$1', 'name')`} {
 	public:
 		$1(${2});
-		~$1();
+		virtual ~$1();
 
 	private:
 		${3:/* data */}
+	};
+# struct with pimpl idiom
+snippet stim
+	struct ${1:`vim_snippets#Filename('$1', 'name')`} {
+		$1(${2});
+		virtual ~$1();
+
+	private:
+		struct Impl;
+		std::unique_ptr<Impl> _impl;
 	};
 # member function implementation
 snippet mfun
