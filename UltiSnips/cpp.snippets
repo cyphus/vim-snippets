@@ -1,25 +1,118 @@
-###########################################################################
-#                            TextMate Snippets                            #
-###########################################################################
-snippet beginend "$1.begin(), $1.end() (beginend)"
-${1:v}${1/^.*?(-)?(>)?$/(?2::(?1:>:.))/}begin(), $1${1/^.*?(-)?(>)?$/(?2::(?1:>:.))/}end()
-endsnippet
+# Personal snippets
 
-snippet cl "class .. (class)"
-class ${1:`!p snip.rv = snip.basename or "name"`}
-{
+global !p
+def to_cml( s ):
+	return "".join( w.title() for w in s.split('_') )
+endglobal
+
+snippet clim "class _impl* (class)"
+class ${1:`!p snip.rv = to_cml( snip.basename ) or "name"`} {
 public:
-	${1/(\w+).*/$1/} (${2:arguments});
-	virtual ~${1/(\w+).*/$1/} ();
+	/**
+	 * Constructs a new ${1/(\w+).*/$1/} object.
+	 */
+	${1/(\w+).*/$1/}();
+	/**
+	 * Copy constructor.
+	 */
+    ${1/(\w+).*/$1/}( const ${1/(\w+).*/$1/}& rhs );
+	/**
+	 * Move constructor.
+	 */
+	${1/(\w+).*/$1/}( ${1/(\w+).*/$1/}&& rhs );
+	/**
+	 * Assignment operator.
+	 */
+	${1/(\w+).*/$1/}& operator=( ${1/(\w+).*/$1/} rhs );
 
+	$0
+
+	/**
+	 * Destructor.
+	 */
+	virtual ~${1/(\w+).*/$1/}();
+	/**
+	 * Swaps the contents of first with second.
+	 * @param first Object to be swapped with second.
+	 * @param second Object to be swapped with first.
+	 */
+	friend void swap(
+			${1/(\w+).*/$1/}& first,
+			${1/(\w+).*/$1/}& second ) noexcept;
 private:
-	${0:/* data */}
+	struct Impl;
+	std::unique_ptr<Impl> _impl;
 };
 endsnippet
 
-snippet ns "namespace .. (namespace)"
-namespace${1/.+/ /m}${1:`!p snip.rv = snip.basename or "name"`}
+snippet cclim "class _impl* (src)" b
+struct ${1:`!p snip.rv = to_cml( snip.basename ) or "name"`}::Impl {
+	Impl()
+	{
+	}
+	Impl( const Impl& rhs )
+	{
+	}
+
+	$0
+};
+
+$1::$1()
+		: _impl( new Impl() )
 {
+}
+$1::$1( const $1& rhs )
+		: _impl( new Impl( *( rhs._impl ) )
+{
+}
+$1::$1( $1&& rhs )
+{
+	swap( *this, rhs );
+}
+$1& $1::operator=( $1 rhs )
+{
+	swap( *this, rhs );
+	return *this;
+}
+
+$1::~$1() {}
+
+void swap( ${1/(\w+).*/$1/}& first, ${1/(\w+).*/$1/}& second )
+{
+	using std::swap;
+	swap( first._impl, second._impl );
+}
+endsnippet
+
+snippet mvgs "getter and move setter" b
+/**
+ * Gets ${2:member}.
+ */
+${1:MemberType} $2() const;
+/**
+ * Sets $2.
+ * @param ${3:$2} Object to assign to $2.
+ */
+void $2( $1 $3 );
+
+$0
+endsnippet
+
+snippet cmvgs "getter and move setter (src)" b
+${1:MemberType} ${2:Class}::${3:member}() const
+{
+	return _impl->_${4:$3};
+}
+void $2::$3( $1 $4 )
+{
+	_impl->_$4 = std::move( $4 );
+}
+
+$0
+endsnippet
+
+snippet ns "namespace .. (namespace)"
+namespace${1/.+/ /m}${1:`!p snip.rv = snip.basename or "name"`} {
 	$0
 }${1/.+/ \/* /m}$1${1/.+/ *\/ /m}
 endsnippet
